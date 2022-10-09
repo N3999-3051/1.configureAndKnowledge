@@ -418,6 +418,421 @@ git clone 用户名@IP地址:/文件路径 本地路径
 
 ​		git log 命令用于查看我们提交的 git 历史记录信息，同时，git log 命令可以通过多种不同的参数，定制显示的样式。
 
+**==命令说明==**
+
+>**功能:** 查看提交的git历史记录信息
+>
+>**语法:** `git log [options] files`
+>
+>`git reflog`   精简信息查看提交记录
+>
+>`git blame file` 以列表形式查看制定文件的历史修改记录
+>
+>```shell
+>参数	          描述
+>–oneline	 以简短方式输出 git log。
+>–stat		 输出增删改的统计数据。
+>-p			 输出每个 commit 具体修改的内容，输出的形式以 diff 的形式给出。
+>–pretty		 自定义输出的信息。
+>–author		 用来过滤 commit，限定输出给定的用户。
+>-n			 限制要输出的数量。
+>–after		 输出在指定日期之后的记录。
+>–before		 输出在指定日期之前的记录。
+>–grep		 搜索提交信息,也支持正常表达式（只能搜索标签、不可搜索内容）。
+>–branchName	 branchName为任意一个分支名字，查看莫个分支上的提交记录。
+>–graph		 以简单的图形方式列出提交记录。
+>```
+
+
+
+**==实例展示==**
+
+>![image-20221009165331164](gitGithub版本控制学习.assets/image-20221009165331164.png) 
+>
+>HEAD指针指向的版本号可以改变,俗称回退版本.可以指向我们需要的版本.
+
+
+
+#### 3.1.8 git checkout放弃本地修改
+
+​		如果我们在本地工作区对某个文件做了修改，现在，我们想放弃本地工作区的修改，我们可以使用 git checkout 命令。
+
+**==命令说明==**
+
+>**功能:** 放弃指定文件的修改, 直接放弃的就是本地文件修改的内容
+>
+>**语法:** `git checkout -- file `
+>
+>
+>
+>此命令常和git reset一起搭配使用
+
+
+
+#### 3.1.9 git reset回退版本
+
+​		git reset 命令是用来将当前 branch 重置到另外一个 commit 的，这个动作可能同时影响到 index 以及 work directory。git reset 有三种工作模式，即 --soft、–mixed 和 --hard。
+
+**==三种模式的区别==**
+
+​		git reset 有三种工作模式，即，git reset --soft、git reset --mixed 和 git reset --hard。其中 git reset --mixed 是默认的方式。
+
+
+
+> **git reset --soft**   仅仅移动当前 Head 指针，不会改变工作区和暂存区的内容，如下图所示：
+>
+> <img src="gitGithub版本控制学习.assets/image-20221009180642567.png" alt="image-20221009180642567" style="zoom: 67%;" />   
+>
+> 使用场景: 
+>
+> 1. 原节点和 reset 节点之间的差异变更集会放入 index 暂存区中(Staged files)，所以假如我们之前工作目录没有改过任何文件，也没 add 到暂存区，那么使用 reset --soft 后，我们可以直接执行 git commit 將 index 暂存区中的內容提交至 repository 中。
+>
+>    为什么要这样呢？这样做的使用场景是：假如我们想合并当前节点与 reset 目标节点之间不具太大意义的 commit 记录(可能是阶段性地频繁提交，就是开发一个功能的时候，改或者增加一个文件的时候就 commit，这样做导致一个完整的功能可能会好多个 commit 点，这时假如你需要把这些 commit 整合成一个 commit 的时候)时，可以考虑使用 reset --soft 来让 commit 演进线图较为清晰。总而言之，可以使用 --soft 合并 commit 节点。
+>
+> 
+>
+> **git reset --mixed**: 是 reset 的默认参数，移动 head 指针，改变暂存区内容，不会改变工作区 ，如下所示：
+>
+> <img src="gitGithub版本控制学习.assets/image-20221009180842507.png" alt="image-20221009180842507" style="zoom:67%;" /> 
+>
+> 使用场景:
+>
+> 1. 使用完 reset --mixed 后，我们可以直接执行 git add 将这些改变后的文件內容加入 index 暂存区中，再执行 git commit 将 Index 暂存区中的內容提交至 Repository 中，这样一样可以达到合并 commit 节点的效果（与上面 --soft 合并 commit 节点差不多，只是多了 git add 添加到暂存区的操作）；
+> 2. 移除所有 Index 暂存区中准备要提交的文件(Staged files)，我们可以执行 git reset HEAD 来 Unstage 所有已列入 Index 暂存区的待提交的文件。(有时候发现 add 错文件到暂存区，就可以使用命令)。
+> 3. commit 提交某些错误代码，或者没有必要的文件也被 commit 上去，不想再修改错误再 commit（因为会留下一个错误 commit 点），可以回退到正确的 commit 点上，然后所有原节点和 reset 节点之间差异会返回工作目录，假如有个没必要的文件的话就可以直接删除了，再 commit 上去就OK了。
+>
+> 
+>
+> **git reset --hard**: 当前 head 指针、工作区和暂存区内容全部改变 ，如下图所示：
+>
+> <img src="gitGithub版本控制学习.assets/image-20221009181003864.png" alt="image-20221009181003864" style="zoom:67%;" /> 
+>
+> 使用场景:
+>
+> 1. 要放弃目前本地的所有改变时，即去掉所有 **git add** 到暂存区的文件和工作区的文件，可以执行 git reset --hard HEAD 来强制恢复 git 管理的文件夹的內容及状态；
+>
+> 2. 真的想抛弃目标节点后的所有 commit（可能觉得目标节点到原节点之间的 commit 提交都是错了，之前所有的 commit 有问题）。
+>
+>    
+>
+>  –soft 用处不是很多，当 commit 之后想撤回 commit，但还不想覆盖工作区内容时，使用 --mixed；当想完全回滚时，使用 --hard 来覆盖工作区。
+
+
+
+**==命令说明==**
+
+>**功能:**有时候，我们用 Git 的时候有可能 git commit 提交代码后，发现这一次 commit 的内容是有错误的，那么有两种处理方法：==(1)修改错误内容，再次 commit 一次 ; (2)使用 git reset 命令撤销这一次错误的commit==第一种方法比较直接，但会多次一次 commit 记录，但如果修改过多的话，那么就不太方便去修改了，因此，这时候更适合使用第二种方式。
+>
+>```shell
+>git reset HEAD~1 //回退一个版本，且会将暂存区的内容和本地已提交的内容全部恢复到未暂存的状态，不                    影响原来本地文件(未提交的也不受影响)。
+>git reset -soft HEAD~1 //回退一个版本，不清空暂存区,将已提交的内容恢复到暂存区，不影响原来本地                          的文件(未提交的也不受影响)。
+>git reset -hard HEAD~1 //回退一个版本，清空暂存区，将已提交的内容的版本恢复到本地，本地的文件                          也将被恢复的版本替换。
+>```
+
+
+
+**==git 回滚总结==**
+
+>1. **修改完还未 git add **
+>   修改完，还未 git add，使用 git checkout回滚：
+>
+>```shell
+>git checkout . //使用暂存区的文件覆盖工作区，所以执行完 git add . 之后，再执行该命令是无效的。                  git checkout . 和 git add . 是一对反义词。
+>```
+>
+><img src="gitGithub版本控制学习.assets/image-20221009205220454.png" alt="image-20221009205220454" style="zoom:80%;" /> 
+>
+>2. **git add追踪了, 但还未commit**
+>   使用 git add 提交到暂存区，还未 commit 之前，使用 git reset 和 git checkout 回滚：
+>
+>```shell
+>##方法1:
+>git reset      //先用 Head 指针覆盖当前的暂存区内容
+>git checkout . //再用暂存区内容覆盖工作区内容
+>
+>##方法2:
+>git reset --hard //直接使用 head 覆盖当前暂存区和工作区。
+>```
+>
+>![image-20221009205950471](gitGithub版本控制学习.assets/image-20221009205950471.png) 
+>
+>
+>
+>3. **已经git commit还未git push**
+>   已经执行了 git commit，但还没有执行 git push，使用 git reset 回滚：
+>
+>   ```shell
+>   ##覆盖本地仓库、暂存区和工作区。
+>   git reset --hard last_commit_id  //参数last_commit_id为提交的id号,
+>   ```
+>
+>   <img src="gitGithub版本控制学习.assets/image-20221009210702257.png" alt="image-20221009210702257" style="zoom:80%;" />  
+>
+>4. **已经git push**
+>
+>   ```shell
+>   ##情况1:修改错了,需要完全覆盖掉,使用: 
+>   git reset --hard commit_id //commit_id为需要回滚的提交号,可以回退到任意提交的版本
+>    
+>   ##情况2:错误的把大文件添加到了缓存区,使用:
+>   git reset  //撤回添加
+>   ```
+>
+>   
+
+
+
+#### 3.1.10  git diff比较不同
+
+​		git diff 命令用于比较两个文件之间的不同，git diff 命令可以用来比较工作区、暂存区、工作目录以及两个分支之间的差异。
+
+<img src="gitGithub版本控制学习.assets/image-20221009212950819.png" alt="image-20221009212950819" style="zoom: 67%;" />  
+
+
+
+#### 3.1.11 git 忽略文件
+
+很少使用到, 可以参照[git忽略文件-git怎么忽略文件-git ignore (haicoder.net)](https://haicoder.net/git/git-ignore.html)学习
+
+
+
+### 3.2 git远程操作
+
+#### 3.2.1 git remote查看远程仓库
+
+**==命令说明:==**
+
+>**语法:** `git remote [options]`
+>
+>```shell
+>git remote -v    //查看远程仓库地址
+>git remote show origin //查看远程仓库信息
+>```
+>
+><img src="gitGithub版本控制学习.assets/image-20221010090031081.png" alt="image-20221010090031081" style="zoom:80%;" /> 
+
+
+
+#### 3.2.2 git remote rm 删除远程仓库
+
+**==命令说明==**
+
+>**语法:** `git remote rm [options]`
+>
+>```shell
+>git remote rm 仓库名 
+>```
+
+
+
+#### 3.2.3 git remote rename 重命名远程仓库
+
+**==语法说明==**
+
+>**语法:** 
+>
+>```shell
+>git remote rename oldname newname 
+>//oldname 旧远程仓库名
+>//newname 新远程仓库名
+>```
+
+
+
+#### 3.2.4 git修改远程仓库地址
+
+**==语法说明:==**
+
+>**语法:**
+>
+>```shell
+>git remote set-url origin url
+>//origin 远程仓库名
+>//url 需要修改的新地址
+>```
+
+
+
+#### 3.2.5 git fetch 拉取远程仓库
+
+如果远程主机的版本库有了更新（Git 术语叫做 commit），需要将这些更新取回本地，这时就要用到 git fetch 命令。
+
+**==命令说明==**
+
+>**语法:** `git fetch [options]`
+>
+>```shell
+>git fetch //创建并更新本地远程分支
+>git fetch origin //将origin远程主机的更新,全部取回本地
+>git fetch origin dev //将origin远程主机的dev分支的更新全部取回本地
+>```
+
+
+
+#### 3.2.6 git pull详解
+
+​      git pull 命令的作用是，取回远程主机某个分支的更新，再与本地的指定分支合并。其实 git pull 就是 git fetch 与 git merge两个命令的合并 .    `git pull = git fetch + git merger`
+
+**==命令说明:==**
+
+>**功能:** 取回远程主机分支的更新, 并与本地合并
+>
+>**语法:** `git pull [options] [remote]`
+>
+>```shell
+>git pull  //当前分支自动与唯一一个追踪分支合并
+>git pull origin  //本地的当前分支自动与对应的origin主机"追踪分支"进行合并
+>git pull origin next //取回origin/next分支, 再与当前分支合并
+>git pull origin:master 取回origin主机的next分支, 与本地的master分支合并
+>```
+>
+>一般来说,公司都会有自己的命令
+
+
+
+#### 3.2.7 git push推送代码到远程
+
+**==命令说明==**
+
+>**功能:** 将本地分支的更新,推送到远程
+>
+>**语法:** `git push <远程主机名> <本地分支名>:<远程分支名>`
+>
+>```shell
+>git push  //如果当前分支只有一个追踪分支,那么主机名都可以省略,表示将当前分支推送到origin主机对             应的分支.
+>git push origin //将当前分支推送到 origin 主机的对应分支。
+>git push origin master //将本地的 master 分支推送到 origin 主机的 master 分支。如果后者不                          存在，则会被新建。
+>git push origin master:newdev //将本地的 master 分支推送到 origin 主机的 newdev 分支。如                                 果后者不存在，则会被新建。
+>git push origin:master //删除远程仓库分支
+>git push -u origin master //如果当前分支与多个主机存在追踪关系，则可以使用 -u 参数指定一个默                             认主机，这样后面就可以不加任何参数使用 git push。
+>git push --all origin  //不管是否存在对应的远程分支，将本地的所有分支都推送到远程主机。
+>git push origin --tags //把tag推送到远端仓库
+>```
+
+
+
+### ==3.3 git的分支操作==
+
+​		**Git 中的分支，其实本质上仅仅是个指向 commit 对象的可变指针**。Git 会使用 master 作为分支的默认名字。在若干次提交后，你其实已经有了一个指向最后一次提交对象的 master 分支，它在每次提交的时候都会自动向前移动。
+​		**Git 中的分支实际上仅是一个包含所指对象校验和**（40 个字符长度 SHA-1 字串）的文件，所以创建和销毁一个分支就变得非常廉价。说白了，新建一个分支就是向一个文件写入 41 个字节（外加一个换行符）那么简单，当然也就很快了。
+
+<img src="gitGithub版本控制学习.assets/image-20221010124401640.png" alt="image-20221010124401640" style="zoom: 50%;" />   
+
+<img src="gitGithub版本控制学习.assets/image-20221010125452591.png" alt="image-20221010125452591" style="zoom:50%;" />  
+
+分支的好处: 并行的进行多个功能的开发,开发效率高. 而且如果一个分支失败,并不会影响其他分支.删除失败的分支即可.
+
+
+
+#### 3.3.1 查看分支
+
+**==命令说明:==**
+
+>**语法:** `git branch [options]`
+>
+>```shell
+>git branch -a //查看所有分支,包括本地和远程分支
+>git branch -r //查看远程分支
+>git branch -v //查看所有分支最后一次提交的commitID
+>```
+>
+>![image-20221010131330901](gitGithub版本控制学习.assets/image-20221010131330901.png) 
+
+
+
+#### 3.3.2 创建分支
+
+​		在 git 中，我们要创建一个本地分支，可以使用 git branch 命令，我们还可以使用 git checkout 命令，创建一个新的分支，并切换到该分支。
+
+**==命令说明==**
+
+>**语法:** 
+>
+>```shell
+>##方法1: 
+>git branch 分支名 commitID   //可以指定某一次的commitId为此分支
+>//commitID为可选项
+>
+>##方法2: 
+>git checkout -b 分支名 commitID  //创建某一个分支,并切换到这个分支
+>
+>##重命名分支
+>git branch -m oldBranchName newBranchName
+>```
+>
+><img src="gitGithub版本控制学习.assets/image-20221010132802292.png" alt="image-20221010132802292" style="zoom:67%;" /> 
+
+
+
+#### 3.1.3 切换分支
+
+**==命令说明==**
+
+>**语法:**
+>
+>```shell
+>git checkout 分之名
+>```
+>
+>![image-20221010133307509](gitGithub版本控制学习.assets/image-20221010133307509.png) 
+>
+>切换分之前记得保存之前分支的修改,不然会丢失修改,
+
+
+
+#### 3.1.4 删除/清除分支
+
+​		在 git 中，我们需要删除分支，可以使用 git branch 命令，删除本地分支，也可以使用 git push 命令，删除远程分支。使用 git push 命令删除远程分支的实现原理就是向远程的指定分支推送一个空分支代替原分支。
+
+**==命令说明==**
+
+>**语法:**
+>
+>```shell
+>##删除分支
+>git branch -d branchName  //删除本地分支
+>
+>git push origin :branch //删除远程分支
+>//origin为远程主机名
+>//branch为需要删除的远程分支
+>
+>##清除分支---删除在本地存在，但在远程已经删除的分支
+>git fetch -p
+>```
+>
+>![image-20221010134248822](gitGithub版本控制学习.assets/image-20221010134248822.png) 
+
+
+
+#### 3.1.5 git merge 合并分支
+
+**==命令说明==**
+
+>**语法**
+>
+>```shell
+>git merge branchName  //将待合并的分支与当前分支合并
+>```
+>
+>在合并时,如果两个分支上有相同的文件被修改了,合并时就会产生冲突.此时就需要处理冲突
+
+
+
+#### 3.1.6 合并冲突处理
+
+**冲突产生的原因:** 合并分支时，两个分支在同一个文件的同一个位置有两套完全不相同的修改。Git无法决定我们要使用哪一个。必须人为的决定新代码的内容。产生冲突时会有MERGING的提示。
+
+当Git无法执行自动合并时，因为更在在同一区域，它会用特殊的字符来表示冲突的区域，具体如下：
+<img src="gitGithub版本控制学习.assets/image-20221010161321234.png" alt="image-20221010161321234" style="zoom: 67%;" />   
+
+
+
+**==实例展示==**
+
+>
+>
+>
+
 
 
 ## 4. GitHub
