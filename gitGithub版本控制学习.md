@@ -534,7 +534,7 @@ git clone 用户名@IP地址:/文件路径 本地路径
 **==git 回滚总结==**
 
 >1. **修改完还未 git add **
->   修改完，还未 git add，使用 git checkout回滚：
+>     修改完，还未 git add，使用 git checkout回滚：
 >
 >```shell
 >git checkout . //使用暂存区的文件覆盖工作区，所以执行完 git add . 之后，再执行该命令是无效的。                  git checkout . 和 git add . 是一对反义词。
@@ -543,7 +543,7 @@ git clone 用户名@IP地址:/文件路径 本地路径
 ><img src="gitGithub版本控制学习.assets/image-20221009205220454.png" alt="image-20221009205220454" style="zoom:80%;" /> 
 >
 >2. **git add追踪了, 但还未commit**
->   使用 git add 提交到暂存区，还未 commit 之前，使用 git reset 和 git checkout 回滚：
+>     使用 git add 提交到暂存区，还未 commit 之前，使用 git reset 和 git checkout 回滚：
 >
 >```shell
 >##方法1:
@@ -559,7 +559,7 @@ git clone 用户名@IP地址:/文件路径 本地路径
 >
 >
 >3. **已经git commit还未git push**
->   已经执行了 git commit，但还没有执行 git push，使用 git reset 回滚：
+>     已经执行了 git commit，但还没有执行 git push，使用 git reset 回滚：
 >
 >   ```shell
 >   ##覆盖本地仓库、暂存区和工作区。
@@ -836,3 +836,40 @@ git clone 用户名@IP地址:/文件路径 本地路径
 
 
 ## 4. GitHub
+
+
+
+## git 实际使用时问题总结
+
+### 1.代码被远程覆盖
+
+**问题描述：** 代码写好了，提交时报如下错误，按照网上的方法pull远程仓库，然后还是没有提交成功。同时发现本地的文件更新的内容被覆盖。
+
+ 
+
+**解决：** 只要自己有过commit，就会有commit记录，找到提交的记录然后恢复问题，
+
+ **操作：** 
+
+>1. `history` 查看自己的命令记录，确定误操作的地方
+>
+>   ![image-20221011080218987](gitGithub版本控制学习.assets/image-20221011080218987.png)
+>
+>   git pull命令是取回远程主机的某个分支的更新，再与本地合并
+>
+>   多人协同开发时远端代码与本地冲突了，就需要处理冲突。git pull --rebase会帮我们新建一个新的分支，并在这个分之上处理冲突。
+>
+>2. `git reflog` 查看自己的提交记录
+>
+>   ![``](gitGithub版本控制学习.assets/image-20221011081643312.png) 
+>
+>3. ` git reset --hard b48789b`  恢复到这个提交 
+>
+>4. 
+>
+>   
+>
+>   
+
+
+
