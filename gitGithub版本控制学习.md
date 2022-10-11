@@ -200,6 +200,69 @@ Git 本地有四个工作区域：工作目录（Working Directory）、暂存�
 
 
 
+### ２.3 git中的origin，HEAD，FETCH_HEAD
+
+这几个概念比较抽象，可以在对git有一个简单的使用和了解之后再回过头来看
+
+**==origin==**
+
+​    	origin直白的理解就是源，可以代表远端仓库的地址。
+​		比如：在本地我们随意的创建一个git仓库，新增一个readme.md文件，接着commit，然后再push。此时就会出现`无法读取远程仓库`的错误，这是因为我们只在本地建了一个仓库，并没有将本地仓库与远程仓库连接关联，git无法理解我们想要把本地的更新推送到那个代码托管平台，哪个仓库，所以就会报错。因此我们需要通过git命令将本地仓库与远程仓库进行关联，使用如下命令：
+
+```shell
+git remote add origin <远程仓库地址> 
+//其实origin只是一个代名词，你也可以将他改为任意名字，只是用来指代远程地址的，一般都默认为origin
+```
+
+​		在git remote add的内部是往`.git/config`的文件中写入了一个`[remote "origin"]`的配置。如果你本地的仓库是通过 `git clone` 下来的，Git 会默认将远程仓库命名为 `origin`，自动帮你关联上远端仓库（可在 `.git/config` 文件中看到已有 `[remote "origin"]` 配置项了），因此 Commit 之后就能直接 Push 了
+
+<img src="gitGithub版本控制学习.assets/image-20221011161647384.png" alt="image-20221011161647384" style="zoom:67%;" /> 
+
+
+
+ **==远程分支Remote Branch==**
+
+​		远程分支就是远程仓库对应分支在本地的一个副本。比如常见的 `origin/master`、`origin/main`、`origin/develop` 等都是远程分支，可以在 `.git/refs/remotes/` 目录下看到。`refs/remotes/origin/` 目录下，相应的分支文件记录的只是一个 `Commit-ID`（SHA-1），比较特殊的是 `HEAD` 文件（即 `origin/HEAD` 分支）记录的是 `ref: refs/remotes/origin/main` 的东西，它始终指向默认远程分支。
+
+
+
+**==HEAD相关==**
+
+1. **HEAD与本地分支相关**
+
+>​		分支只是对 Commit-ID 的引用。每当在某个分支上提交代码，Git 都会产生一个全新的、唯一的 Commit-ID，此时我们的分支名称也随之移向最新的一个 Commit-ID。
+>
+> 		**HEAD 存放于本地仓库的 `.git/HEAD` 文件里面，利用 `cat` 命令可以看到它的内容。**比如：我们使用命令`git checkout dev`从main分支切换到dev分支，然后查看HEAD中的内容，发现HEAD的内容发生了变化。
+>
+><img src="gitGithub版本控制学习.assets/image-20221012082507619.png" alt="image-20221012082507619" style="zoom:67%;" /> 
+>
+> 		此时 `HEAD` 只是对 Commit-ID 为 `866bc9f1d8f4797c0e46e959cb0c9abdd47d8176` 的引用。如果切回 `main` 分支，那么 `HEAD` 相应的内容就会跟着改变。而 `HEAD` 则是比较特殊的一个引用（有些文章称为「指针」，也问题不大）。除了 `git commit` 之外，`git checkout`、`git reset` 等命令都会影响 `HEAD` 的指向。
+>
+>> **当使用 `git commit` 时，`HEAD` 会跟着移动，并指向当前分支最新的 Commit-ID。**
+>
+>> **当使用 `git checkout` 时，`HEAD` 会移动并指向对应分支的最新一个 Commit-ID。**
+>
+>> **当使用 `git reset` 时，`HEAD` 会移动至对应分支的某个 Commit-ID。请注意 `git reset --hard` 可以将 `HEAD` 和 `Branch` 移动至任何地方。**git reset的本质就是移动HEAD达到撤销的目的。
+
+
+
+2. **FETCH_HEAD**
+
+>**`FETCH_HEAD` 指的是某个分支在远程仓库上最新的状态。**每一个执行过 `git fetch` 操作的本地仓库都会存在一个 `FETCH_HEAD` 列表，这个列表保存在 `.git/FETCH_HEAD` 文件中。`FETCH_HEAD` 文件中的每一行对应着远程仓库的一个分支。当前本地分支指向的
+>
+>```shell
+>git fetch //拉取「所有远程仓库」所包含的分支到本地，并在本地创建或更新远程分支。所有分支最新的               Commit-ID 都会记录在 `.git/FETCH_HEAD` 文件中，若有多个分支，`FETCH_HEAD` 内             会多行数据。
+>
+>git fetch origin //拉取`origin`对应的远程仓库的所包含的分支到本地，`FETCH_HEAD` 设定同上。
+>git fetch origin main //拉取 origin 对应远程仓库的 main 分支到本地，且 FETCH_HEAD 只记录                         了一条数据，那就是远程仓库 main 分支最新的 Commit-ID。
+>
+>git fetch origin mian:temp//拉取 origin 对应远程仓库的 main 分支到本地，其中 FETCH_HEAD                             记录了远程仓库 main 分支最新的 Commit-ID，并且基于远程仓库的                               main 分支创建一个名为 temp 的新本地分支（但不会切换至新分支）。
+>```
+
+
+
+
+
 ## 3 Git命令使用
 
 ### 3.1 Git本地基础操作命令
@@ -534,7 +597,7 @@ git clone 用户名@IP地址:/文件路径 本地路径
 **==git 回滚总结==**
 
 >1. **修改完还未 git add **
->   修改完，还未 git add，使用 git checkout回滚：
+>     修改完，还未 git add，使用 git checkout回滚：
 >
 >```shell
 >git checkout . //使用暂存区的文件覆盖工作区，所以执行完 git add . 之后，再执行该命令是无效的。                  git checkout . 和 git add . 是一对反义词。
@@ -543,7 +606,7 @@ git clone 用户名@IP地址:/文件路径 本地路径
 ><img src="gitGithub版本控制学习.assets/image-20221009205220454.png" alt="image-20221009205220454" style="zoom:80%;" /> 
 >
 >2. **git add追踪了, 但还未commit**
->   使用 git add 提交到暂存区，还未 commit 之前，使用 git reset 和 git checkout 回滚：
+>     使用 git add 提交到暂存区，还未 commit 之前，使用 git reset 和 git checkout 回滚：
 >
 >```shell
 >##方法1:
@@ -559,7 +622,7 @@ git clone 用户名@IP地址:/文件路径 本地路径
 >
 >
 >3. **已经git commit还未git push**
->   已经执行了 git commit，但还没有执行 git push，使用 git reset 回滚：
+>     已经执行了 git commit，但还没有执行 git push，使用 git reset 回滚：
 >
 >   ```shell
 >   ##覆盖本地仓库、暂存区和工作区。
@@ -655,7 +718,7 @@ git clone 用户名@IP地址:/文件路径 本地路径
 
 #### 3.2.5 git fetch 拉取远程仓库
 
-如果远程主机的版本库有了更新（Git 术语叫做 commit），需要将这些更新取回本地，这时就要用到 git fetch 命令。
+如果远程主机的版本库有了更新（Git 术语叫做 commit），需要将这些更新取回本地，这时就要用到 git fetch 命令。**请注意 `git fetch` 并不会修改「本地分支」的代码。**
 
 **==命令说明==**
 
@@ -666,6 +729,10 @@ git clone 用户名@IP地址:/文件路径 本地路径
 >git fetch origin //将origin远程主机的更新,全部取回本地
 >git fetch origin dev //将origin远程主机的dev分支的更新全部取回本地
 >```
+>
+>​		通过 `git fetch` 拉取代码的过程：先读取 `.git/config` 文件里面的配置 `[remote <remote-name>]`，将里面的所有（因为 `fetch` 并没有指定其中一个或多个远程仓库）远程名称对应仓库的分支下载到本地，并放在 `.git/refs/remotes/<remote-name>/` 目录下。
+>
+>
 
 
 
@@ -687,6 +754,13 @@ git clone 用户名@IP地址:/文件路径 本地路径
 >```
 >
 >一般来说,公司都会有自己的命令
+>
+>`git pull` 等价于 `git fetch` + `git merge FETCH_HEAD` 两个步骤的结合。拆分为两个步骤：
+>
+>1. `git fetch origin main`
+>   将远程仓库的 `main` 分支最新 Commit-ID 记录到 `.git/FETCH_HEAD` 中，此时 `FETCH_HEAD` 指向该 Commit-ID。
+>2. `git merge FETCH_HEAD`
+>    将 `FETCH_HEAD` 对应的 Commit-ID 合并至本地 `main` 分支中。如果合并过程不存在冲突（即只是 Fast-Forward），那么可以顺利完成 `git pull` 最后一个步骤，否则的话，需要手动解决冲突。
 
 
 
@@ -694,9 +768,9 @@ git clone 用户名@IP地址:/文件路径 本地路径
 
 **==命令说明==**
 
->**功能:** 将本地分支的更新,推送到远程
+>**功能:** 将本地分支的更新，推送到远程。推送的最小单位是分支
 >
->**语法:** `git push <远程主机名> <本地分支名>:<远程分支名>`
+>**语法:** `git push <远程主机别名> <本地分支名>:<远程分支名>`
 >
 >```shell
 >git push  //如果当前分支只有一个追踪分支,那么主机名都可以省略,表示将当前分支推送到origin主机对             应的分支.
@@ -713,14 +787,16 @@ git clone 用户名@IP地址:/文件路径 本地路径
 
 ### ==3.3 git的分支操作==
 
-​		**Git 中的分支，其实本质上仅仅是个指向 commit 对象的可变指针**。Git 会使用 master 作为分支的默认名字。在若干次提交后，你其实已经有了一个指向最后一次提交对象的 master 分支，它在每次提交的时候都会自动向前移动。
+​		**Git 中的分支，其实本质上仅仅是个指向 commit 对象的可变指针**。Git 会使用 master 作为本地分支的默认名字（gitHub克隆下来的仓库 以main为本地分支）。在若干次提交后，你其实已经有了一个指向最后一次提交对象的 master 分支，它在每次提交的时候都会自动向前移动。
 ​		**Git 中的分支实际上仅是一个包含所指对象校验和**（40 个字符长度 SHA-1 字串）的文件，所以创建和销毁一个分支就变得非常廉价。说白了，新建一个分支就是向一个文件写入 41 个字节（外加一个换行符）那么简单，当然也就很快了。
 
 <img src="gitGithub版本控制学习.assets/image-20221010124401640.png" alt="image-20221010124401640" style="zoom: 50%;" />   
 
 <img src="gitGithub版本控制学习.assets/image-20221010125452591.png" alt="image-20221010125452591" style="zoom:50%;" />  
 
-分支的好处: 并行的进行多个功能的开发,开发效率高. 而且如果一个分支失败,并不会影响其他分支.删除失败的分支即可.
+​		**其实 Git 中的「分支」是由一个或多个 `Commit-ID` 组成的集合。通过 `git branch` 命令创建的分支，只是对某个 `Commit-ID` 的「引用」。因此，使用 `git branch -d` 删除某个本地分支，也只是删除了这个「引用」而已，并不会删除任何的 `Commit-ID`。但是，如果一个 `Commit-ID` 没有被任何一个分支引用的话，在一定时间之后，将会被 Git 回收机制删除。**
+
+​		分支的好处: 并行的进行多个功能的开发,开发效率高. 而且如果一个分支失败,并不会影响其他分支.删除失败的分支即可.
 
 
 
@@ -836,3 +912,84 @@ git clone 用户名@IP地址:/文件路径 本地路径
 
 
 ## 4. GitHub
+
+
+
+
+
+
+
+
+
+## git 实际使用时问题总结
+
+### 1.代码被远程覆盖
+
+**问题描述：** 代码写好了，提交时报如下错误，按照网上的方法pull远程仓库，然后还是没有提交成功。同时发现本地的文件更新的内容被覆盖。
+
+![image-20221011101215100](gitGithub版本控制学习.assets/image-20221011101215100.png)
+
+**解决：** 只要自己有过commit，就会有commit记录，找到提交的记录然后恢复问题，
+
+ **操作：** 
+
+>1. `history` 查看自己的命令记录，确定误操作的地方
+>
+>   ![image-20221011080218987](gitGithub版本控制学习.assets/image-20221011080218987.png)
+>
+>   git pull命令是取回远程主机的某个分支的更新，再与本地合并
+>
+>   多人协同开发时远端代码与本地冲突了，就需要处理冲突。git pull --rebase会帮我们新建一个新的分支，并在这个分之上处理冲突。
+>
+>2. `git reflog` 查看自己的提交记录
+>
+>   ![``](gitGithub版本控制学习.assets/image-20221011081643312.png) 
+>
+>3. ` git reset --hard b48789b`  恢复到这个提交 
+
+
+
+### 2. git push时提交错误
+
+**问题描述：** 本地的分支和gitHub上的分支都是main，但是每次提交总是会报下面的错误，没有gitHub的仓库上改过任何东西给。
+
+![image-20221011101452355](gitGithub版本控制学习.assets/image-20221011101452355.png)
+
+通过查阅得知这个文婷出现的原因是：**别人上传到远程仓库后，你没有及时的同步（拉取）到本地，但是你同时又添加了一些内容（提交），以致于你在提交时，它会检测到你之前从远程仓库拉取的时候的仓库状态和现在的不一样。于是，它为了安全起见拒绝了你的提交（然后就报了这个错误）。**
+
+**解决方法：**
+
+>**方法1：**先合并之前的历史，在进行提交。
+>
+>```shell
+>git fetch origin main // 1.先把git的东西fetch到本地，
+>git merge origin FETCH_HEAD // 2.抓取远程仓库的更新到本地，再合并。可能会产生冲突，要处理冲宊
+>git pull --rebase origin main//3.重定基，使提交历史更加统一
+>
+>##命令说明
+>git pull = git fetch + git nerge FETCH_HEAD  分开使用命令更加安全
+>git pull --rebase = git fetch + git rebase FETCH_HEAD
+>```
+>
+>
+>
+>**方法2：** 丢弃之前的历史，强推。利用覆盖的方式用本地代码替代git仓库的内容
+>
+>```shell
+>##以下两个命令都可以强推，是一样的
+>git push -f 
+>git push -force
+>```
+>
+>![image-20221011153600699](gitGithub版本控制学习.assets/image-20221011153600699.png)　
+>
+>使用强推一定是能成功的。
+>
+>![image-20221011153913286](gitGithub版本控制学习.assets/image-20221011153913286.png)　
+
+
+
+ 
+
+
+
